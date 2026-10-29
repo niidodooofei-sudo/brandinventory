@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brands & Comms Inventory</title>
+  <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/favicon-180.png">
+  <link rel="shortcut icon" href="/favicon.ico">
+  <link rel="stylesheet" href="/css/styles.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <!-- Top Navigation Header -->
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand-group">
+        <img src="/images/logo.png" alt="B&C Inventory Logo" class="brand-logo-img">
+        <div class="brand-text">
+          <h1 class="brand-title">Brands & Comms</h1>
+          <p class="brand-subtitle">Inventory Management System</p>
+        </div>
+      </div>
+
+      <div class="header-actions">
+        <!-- Connection Status Pill -->
+        <button id="connection-pill" class="status-pill status-pill-loading" title="Click to view Google Sheets connection info">
+          <span class="status-dot"></span>
+          <span id="connection-text">Connecting...</span>
+        </button>
+
+        <button id="btn-open-add-item" class="btn btn-primary">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Item
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Layout -->
+  <main class="main-container">
+    <!-- Stat Cards Overview -->
+    <section class="stats-grid">
+      <div class="stat-card" id="card-total-items" role="button" tabindex="0">
+        <div class="stat-header">
+          <span class="stat-label">Total Items</span>
+          <span class="stat-icon-wrap bg-blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+          </span>
+        </div>
+        <div class="stat-value" id="stat-total-items">0</div>
+        <div class="stat-subtext">Active items in catalog</div>
+      </div>
+
+      <div class="stat-card" id="card-total-stock" role="button" tabindex="0">
+        <div class="stat-header">
+          <span class="stat-label">Total Stock Count</span>
+          <span class="stat-icon-wrap bg-purple">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>
+          </span>
+        </div>
+        <div class="stat-value" id="stat-total-stock">0</div>
+        <div class="stat-subtext">Cumulative units in store</div>
+      </div>
+
+      <div class="stat-card" id="card-low-stock" role="button" tabindex="0">
+        <div class="stat-header">
+          <span class="stat-label">Low Stock Alerts</span>
+          <span class="stat-icon-wrap bg-amber">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+          </span>
+        </div>
+        <div class="stat-value" id="stat-low-stock">0</div>
+        <div class="stat-subtext" id="stat-low-sub">Items at or below threshold</div>
+      </div>
+
+      <div class="stat-card" id="card-out-stock" role="button" tabindex="0">
+        <div class="stat-header">
+          <span class="stat-label">Out of Stock</span>
+          <span class="stat-icon-wrap bg-red">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+          </span>
+        </div>
+        <div class="stat-value" id="stat-out-stock">0</div>
+        <div class="stat-subtext">Need immediate restock</div>
+      </div>
+    </section>
+
+    <!-- Navigation Tabs -->
+    <nav class="nav-tabs">
+      <button class="nav-tab active" data-tab="tab-inventory">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        Inventory Stock
+      </button>
+      <button class="nav-tab" data-tab="tab-record">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+        Record Transaction
+      </button>
+      <button class="nav-tab" data-tab="tab-history">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        Transaction History & Audit
+      </button>
+      <button class="nav-tab" data-tab="tab-settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+        Google Sheets Setup
+      </button>
+    </nav>
+
+    <!-- Tab 1: Inventory Stock List -->
+    <section id="tab-inventory" class="tab-panel active">
+      <div class="panel-header">
+        <div class="search-filter-bar">
+          <div class="search-input-wrap">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input type="text" id="inventory-search" placeholder="Search by item name or ID..." autocomplete="off">
+          </div>
+          <select id="filter-category" class="filter-select">
+            <option value="all">All Categories</option>
+          </select>
+          <select id="filter-stock-status" class="filter-select">
+            <option value="all">All Stock Statuses</option>
+            <option value="low">Low Stock (≤ Threshold)</option>
+            <option value="out">Out of Stock (0 units)</option>
+            <option value="in">Healthy Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inventory Table / Cards Container -->
+      <div class="table-responsive">
+        <table class="data-table" id="inventory-table">
+          <thead>
+            <tr>
+              <th>Item ID</th>
+              <th>Item Name</th>
+              <th>Category</th>
+              <th>Current Stock</th>
+              <th>Unit</th>
+              <th>Threshold</th>
+              <th>Status</th>
+              <th style="text-align: right;">Quick Actions</th>
+            </tr>
+          </thead>
+          <tbody id="inventory-tbody">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Empty State -->
+      <div id="inventory-empty-state" class="empty-state hidden">
+        <div class="empty-icon">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path></svg>
+        </div>
+        <h3 id="empty-title">No inventory items found</h3>
+        <p id="empty-subtitle">Your catalog is currently empty. Get started by adding your first brand or communications item.</p>
+        <button class="btn btn-primary" onclick="openAddItemModal()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          Add Your First Item
+        </button>
+      </div>
+    </section>
+
+    <!-- Tab 2: Record Transaction Form -->
+    <section id="tab-record" class="tab-panel">
+      <div class="card form-card">
+        <div class="form-type-selector">
+          <button type="button" class="type-pill active" data-type="Receipt">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Record Stock Received
+          </button>
+          <button type="button" class="type-pill" data-type="Distribution">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            Record Items Distributed
+          </button>
+          <button type="button" class="type-pill" data-type="Adjustment">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+            Stock Adjustment / Audit
+          </button>
+        </div>
+
+        <form id="record-txn-form" class="transaction-form" novalidate>
+          <div class="form-grid">
+            <!-- Item Selector -->
+            <div class="form-group col-span-2">
+              <label for="txn-item-select" class="form-label">Select Item <span class="req">*</span></label>
+              <select id="txn-item-select" class="form-control" required>
+                <option value="">-- Choose an item --</option>
+              </select>
+              <div id="txn-item-stock-hint" class="field-hint"></div>
+            </div>
+
+            <!-- Quantity -->
+            <div class="form-group" id="group-quantity">
+              <label for="txn-quantity" class="form-label" id="label-txn-quantity">Quantity Received <span class="req">*</span></label>
+              <input type="number" id="txn-quantity" class="form-control" min="1" step="1" placeholder="e.g. 50" required>
+              <div class="field-hint" id="hint-txn-quantity">Must be a positive integer</div>
+            </div>
+
+            <!-- Date -->
+            <div class="form-group">
+              <label for="txn-date" class="form-label">Transaction Date <span class="req">*</span></label>
+              <input type="date" id="txn-date" class="form-control" required>
+            </div>
+
+            <!-- Adjustment Direction (Adjustment mode only) -->
+            <div class="form-group col-span-2 hidden" id="group-adjustment-mode">
+              <label class="form-label">Adjustment Direction <span class="req">*</span></label>
+              <div class="radio-group">
+                <label class="radio-label">
+                  <input type="radio" name="adj-direction" value="add" checked>
+                  <span class="radio-custom"></span>
+                  <span>Increase Stock (+) — e.g. found stock, count reconciliation</span>
+                </label>
+                <label class="radio-label">
+                  <input type="radio" name="adj-direction" value="subtract">
+                  <span class="radio-custom"></span>
+                  <span>Decrease Stock (-) — e.g. damaged goods, write-off, shrinkage</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Recipient (Distribution mode only) -->
+            <div class="form-group col-span-2 hidden" id="group-recipient">
+              <label for="txn-recipient" class="form-label">Who it was given to (Recipient) <span class="req">*</span></label>
+              <input type="text" id="txn-recipient" class="form-control" placeholder="e.g. Sarah Jenkins (PR Lead), Keynote Speakers, HR Team">
+            </div>
+
+            <!-- Event / Reason (Distribution and Adjustment mode) -->
+            <div class="form-group col-span-2 hidden" id="group-event-reason">
+              <label for="txn-event-reason" class="form-label" id="label-event-reason">Event or Reason <span class="req">*</span></label>
+              <input type="text" id="txn-event-reason" class="form-control" placeholder="e.g. Annual Brand Summit 2026, VIP Press Kits, Physical count discrepancy">
+            </div>
+
+            <!-- Notes -->
+            <div class="form-group col-span-2">
+              <label for="txn-notes" class="form-label">Optional Notes</label>
+              <textarea id="txn-notes" class="form-control" rows="2" placeholder="Purchase order #, delivery tracking, extra instructions, etc."></textarea>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" id="btn-submit-txn" class="btn btn-primary btn-lg">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              Save Transaction
+            </button>
+            <button type="button" class="btn btn-secondary" onclick="resetTxnForm()">Reset Form</button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- Tab 3: Transaction History & Audit -->
+    <section id="tab-history" class="tab-panel">
+      <div class="panel-header flex-wrap">
+        <div class="filter-controls-grid">
+          <div class="filter-col">
+            <label class="filter-col-label">Filter by Item</label>
+            <select id="history-filter-item" class="filter-select">
+              <option value="all">All Items</option>
+            </select>
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label">Transaction Type</label>
+            <select id="history-filter-type" class="filter-select">
+              <option value="all">All Types</option>
+              <option value="Receipt">Receipts (+)</option>
+              <option value="Distribution">Distributions (-)</option>
+              <option value="Adjustment">Adjustments (±)</option>
+            </select>
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label">From Date</label>
+            <input type="date" id="history-filter-start" class="filter-date">
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label">To Date</label>
+            <input type="date" id="history-filter-end" class="filter-date">
+          </div>
+
+          <div class="filter-col">
+            <label class="filter-col-label">Search Details</label>
+            <input type="text" id="history-filter-search" class="filter-input" placeholder="Search recipient, event, notes...">
+          </div>
+        </div>
+
+        <div class="history-actions-row">
+          <button class="btn btn-secondary" id="btn-export-csv">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Export to CSV
+          </button>
+          <button class="btn btn-outline" id="btn-reset-history-filters">Reset Filters</button>
+        </div>
+      </div>
+
+      <!-- History Table -->
+      <div class="table-responsive">
+        <table class="data-table" id="history-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Transaction ID</th>
+              <th>Item</th>
+              <th>Type</th>
+              <th>Quantity</th>
+              <th>Recipient</th>
+              <th>Event / Reason</th>
+              <th>Notes</th>
+              <th style="text-align: right;">Mistake Correction</th>
+            </tr>
+          </thead>
+          <tbody id="history-tbody">
+            <!-- Dynamic Rows -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="history-empty-state" class="empty-state hidden">
+        <p>No transactions match the selected filters.</p>
+      </div>
+    </section>
+
+    <!-- Tab 4: Google Sheets Setup & Connection Info -->
+    <section id="tab-settings" class="tab-panel">
+      <div class="card settings-card">
+        <div class="settings-header">
+          <div class="google-sheets-logo">
+            <svg width="32" height="32" viewBox="0 0 48 48">
+              <path fill="#0F9D58" d="M37 6H11C9.34 6 8 7.34 8 9v30c0 1.66 1.34 3 3 3h26c1.66 0 3-1.34 3-3V9c0-1.66-1.34-3-3-3z"/>
+              <path fill="#FFF" d="M16 16h16v3H16zm0 6h16v3H16zm0 6h10v3H16z"/>
+            </svg>
+          </div>
+          <div>
+            <h2 class="settings-title">Google Sheets Connection & Setup</h2>
+            <p class="settings-subtitle">How your inventory connects securely to Google Sheets</p>
+          </div>
+        </div>
+
+        <div id="connection-status-box" class="connection-status-box">
+          <div class="status-box-header">
+            <span class="status-badge" id="settings-status-badge">Checking...</span>
+            <span id="settings-status-msg">Connecting to service...</span>
+          </div>
+          <div class="status-box-body" id="settings-status-details"></div>
+          <div class="status-box-actions">
+            <button class="btn btn-secondary" id="btn-recheck-connection">Test Connection</button>
+            <button class="btn btn-primary" id="btn-init-headers">Initialize Sheet Tabs & Headers</button>
+          </div>
+        </div>
+
+        <div class="setup-steps">
+          <h3>Step-by-Step Google Sheets Setup Guide</h3>
+          
+          <div class="step-card">
+            <div class="step-num">1</div>
+            <div class="step-body">
+              <h4>Create your Google Sheet</h4>
+              <p>Go to <a href="https://sheets.new" target="_blank" rel="noopener">sheets.new</a> to create a new spreadsheet. Name it <strong>"Brands & Comms Inventory"</strong>.</p>
+              <p>Copy the <strong>Spreadsheet ID</strong> from your browser's address bar. For example, in <code>https://docs.google.com/spreadsheets/d/<b>1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms</b>/edit</code>, the bold part is the ID.</p>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">2</div>
+            <div class="step-body">
+              <h4>Create a Google Cloud Service Account</h4>
+              <ol>
+                <li>Open the <a href="https://console.cloud.google.com/" target="_blank" rel="noopener">Google Cloud Console</a>.</li>
+                <li>Enable the <strong>Google Sheets API</strong> in <em>APIs & Services &gt; Library</em>.</li>
+                <li>Go to <em>IAM & Admin &gt; Service Accounts</em> and click <strong>Create Service Account</strong>.</li>
+                <li>Name it (e.g. <code>inventory-manager</code>) and create it.</li>
+                <li>Click the service account &gt; <strong>Keys</strong> tab &gt; <strong>Add Key</strong> &gt; <strong>Create new key</strong> &gt; Choose <strong>JSON</strong>. A key file will download.</li>
+                <li><strong>Important:</strong> Copy the service account email (e.g. <code>inventory-manager@project-id.iam.gserviceaccount.com</code>), open your Google Sheet, click <strong>Share</strong>, and give this email <strong>Editor</strong> access!</li>
+              </ol>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">3</div>
+            <div class="step-body">
+              <h4>Configure Environment Variables</h4>
+              <p>Create a <code>.env</code> file in the project root with the following variables:</p>
+              <pre class="code-block"><code>GOOGLE_SPREADSHEET_ID=your_spreadsheet_id_here
+# Option A: Path to downloaded JSON key file
+GOOGLE_APPLICATION_CREDENTIALS=/path/to/your/service-account-key.json
+
+# OR Option B: Direct credentials (ideal for cloud hosting like Render/Heroku/Vercel)
+GOOGLE_SERVICE_ACCOUNT_EMAIL=your-service-account@project.iam.gserviceaccount.com
+GOOGLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\nMIIEvgIBA...your key here...\n-----END PRIVATE KEY-----\n"</code></pre>
+            </div>
+          </div>
+
+          <div class="step-card">
+            <div class="step-num">4</div>
+            <div class="step-body">
+              <h4>Spreadsheet Structure Reference</h4>
+              <p>The app automatically manages two tabs. You can click <strong>"Initialize Sheet Tabs & Headers"</strong> above, or verify the structure manually:</p>
+              <div class="tabs-reference">
+                <strong>Tab 1: <code>Items</code></strong>
+                <code>Item ID | Item Name | Category | Unit of Measure | Low-Stock Threshold | Status</code>
+                <br><br>
+                <strong>Tab 2: <code>Transactions</code></strong>
+                <code>Transaction ID | Date | Item ID | Transaction Type | Quantity | Recipient | Event/Reason | Notes | Timestamp</code>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Modal: Add New Item -->
+  <div id="modal-add-item" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">Add New Inventory Item</h2>
+        <button class="modal-close" onclick="closeAddItemModal()">&times;</button>
+      </div>
+      <form id="add-item-form" novalidate>
+        <div class="modal-body">
+          <div class="form-grid">
+            <div class="form-group col-span-2">
+              <label for="item-name" class="form-label">Item Name <span class="req">*</span></label>
+              <input type="text" id="item-name" class="form-control" placeholder="e.g. Branded Matte Tote Bags, Executive Rollerball Pens" required>
+            </div>
+
+            <div class="form-group">
+              <label for="item-id" class="form-label">Item ID (SKU)</label>
+              <input type="text" id="item-id" class="form-control" placeholder="Auto-generated (e.g. ITEM-001)">
+              <div class="field-hint">Leave blank to auto-generate a unique ID</div>
+            </div>
+
+            <div class="form-group">
+              <label for="item-category" class="form-label">Category <span class="req">*</span></label>
+              <input type="text" id="item-category" class="form-control" list="category-suggestions" placeholder="e.g. Apparel, Drinkware, Stationery" required>
+              <datalist id="category-suggestions">
+                <option value="Apparel & Wearables">
+                <option value="Stationery & Notebooks">
+                <option value="Drinkware & Bottles">
+                <option value="Bags & Totes">
+                <option value="Tech Accessories">
+                <option value="Event Displays & Signage">
+                <option value="Print Collateral & Media">
+                <option value="Executive Gifts">
+              </datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="item-unit" class="form-label">Unit of Measure <span class="req">*</span></label>
+              <input type="text" id="item-unit" class="form-control" list="unit-suggestions" placeholder="e.g. pcs, boxes, sets, rolls" required>
+              <datalist id="unit-suggestions">
+                <option value="pcs">
+                <option value="boxes">
+                <option value="packs">
+                <option value="sets">
+                <option value="rolls">
+                <option value="units">
+              </datalist>
+            </div>
+
+            <div class="form-group">
+              <label for="item-threshold" class="form-label">Low-Stock Alert Threshold <span class="req">*</span></label>
+              <input type="number" id="item-threshold" class="form-control" min="0" value="10" required>
+              <div class="field-hint">Flag alert when stock falls to or below this count</div>
+            </div>
+
+            <div class="form-group">
+              <label for="item-status" class="form-label">Item Status</label>
+              <select id="item-status" class="form-control">
+                <option value="Active">Active</option>
+                <option value="Inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label for="item-initial-stock" class="form-label">Initial Stock Count (Optional)</label>
+              <input type="number" id="item-initial-stock" class="form-control" min="0" placeholder="0">
+              <div class="field-hint">Automatically records an initial stock receipt</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeAddItemModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            Save Item to Inventory
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal: Reversal / Mistake Correction -->
+  <div id="modal-reverse" class="modal-backdrop hidden">
+    <div class="modal-window">
+      <div class="modal-header">
+        <h2 class="modal-title">Reverse Transaction (Mistake Correction)</h2>
+        <button class="modal-close" onclick="closeReverseModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="reversal-info-banner">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+          <div>
+            <strong>Audit-Safe Correction:</strong> This creates an explicit offsetting adjustment entry in your Google Sheet that restores the stock balance while keeping the original transaction record completely intact.
+          </div>
+        </div>
+
+        <div class="details-summary-card">
+          <div class="detail-row">
+            <span class="detail-label">Original Transaction ID:</span>
+            <span class="detail-val" id="rev-original-id"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Item:</span>
+            <span class="detail-val" id="rev-original-item"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Original Type & Quantity:</span>
+            <span class="detail-val" id="rev-original-type-qty"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Current Stock:</span>
+            <span class="detail-val" id="rev-current-stock"></span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Balancing Adjustment:</span>
+            <span class="detail-val font-bold" id="rev-offset-effect"></span>
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-top: 1rem;">
+          <label for="rev-reason-input" class="form-label">Correction Reason / Explanation <span class="req">*</span></label>
+          <input type="text" id="rev-reason-input" class="form-control" placeholder="e.g. Distributed to wrong recipient, entered wrong quantity, duplicate entry" required>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeReverseModal()">Cancel</button>
+        <button type="button" class="btn btn-danger" id="btn-confirm-reversal">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+          Confirm Reversal & Restore Balance
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <script src="/js/app.js"></script>
+</body>
+</html>
+
