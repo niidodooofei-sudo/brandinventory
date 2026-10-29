@@ -172,9 +172,13 @@ app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => {
-  console.log(`\n======================================================`);
-  console.log(`  Brands & Comms Inventory Server`);
-  console.log(`  Running at: http://localhost:${PORT}`);
-  console.log(`======================================================\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n======================================================`);
+    console.log(`  Brands & Comms Inventory Server`);
+    console.log(`  Running at: http://localhost:${PORT}`);
+    console.log(`======================================================\n`);
+  });
+}
+
+module.exports = app;
