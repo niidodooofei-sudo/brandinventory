@@ -2,6 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
+const fs = require('fs');
 const store = require('./lib/dataStore');
 
 const app = express();
@@ -169,7 +170,11 @@ app.post('/api/transactions/:id/reverse', async (req, res) => {
 
 // Fallback to index.html for SPA routes
 app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  const indexPath = path.join(__dirname, 'public', 'index.html');
+  if (fs.existsSync(indexPath)) {
+    return res.sendFile(indexPath);
+  }
+  res.status(200).send('Brands & Comms Inventory API');
 });
 
 if (require.main === module) {
