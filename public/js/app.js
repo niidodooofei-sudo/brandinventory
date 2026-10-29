@@ -89,6 +89,13 @@ const elements = {
   revReasonInput: document.getElementById('rev-reason-input'),
   btnConfirmReversal: document.getElementById('btn-confirm-reversal'),
 
+  // Delete Modal
+  modalDeleteItem: document.getElementById('modal-delete-item'),
+  delItemName: document.getElementById('del-item-name'),
+  delItemId: document.getElementById('del-item-id'),
+  delItemStock: document.getElementById('del-item-stock'),
+  btnConfirmDeleteItem: document.getElementById('btn-confirm-delete-item'),
+
   // Toast Container
   toastContainer: document.getElementById('toast-container'),
 };
@@ -205,6 +212,9 @@ function setupEventListeners() {
 
   // Reversal Confirmation
   elements.btnConfirmReversal.addEventListener('click', handleConfirmReversal);
+
+  // Delete Item Confirmation
+  elements.btnConfirmDeleteItem.addEventListener('click', handleConfirmDeleteItem);
 
   // Settings Actions
   elements.btnRecheckConnection.addEventListener('click', async () => {
@@ -466,6 +476,9 @@ function renderInventory() {
             </button>
             <button class="btn btn-outline btn-sm" onclick="quickAction('${item.id}', 'Adjustment')" title="Audit / Stock Adjustment">
               ± Adjust
+            </button>
+            <button class="btn btn-outline btn-sm btn-icon-danger" onclick="confirmDeleteItem('${item.id}')" title="Delete item from inventory">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
             </button>
           </div>
         </td>
@@ -892,6 +905,53 @@ async function handleConfirmReversal() {
     showToast('Network error during transaction reversal', 'error');
   } finally {
     elements.btnConfirmReversal.disabled = false;
+  }
+}
+
+// --- Item Deletion ---
+window.confirmDeleteItem = function(itemId) {
+  const item = state.items.find(i => i.id === itemId);
+  if (!item) {
+    showToast('Item not found', 'error');
+    return;
+  }
+
+  state.selectedDeleteItemId = itemId;
+  elements.delItemName.textContent = item.name;
+  elements.delItemId.textContent = item.id;
+  elements.delItemStock.textContent = `${item.currentStock} ${item.unit || 'units'}`;
+
+  elements.modalDeleteItem.classList.remove('hidden');
+};
+
+window.closeDeleteItemModal = function() {
+  elements.modalDeleteItem.classList.add('hidden');
+  state.selectedDeleteItemId = null;
+};
+
+async function handleConfirmDeleteItem() {
+  if (!state.selectedDeleteItemId) return;
+  const itemId = state.selectedDeleteItemId;
+
+  elements.btnConfirmDeleteItem.disabled = true;
+
+  try {
+    const res = await fetch(`/api/items/${encodeURIComponent(itemId)}`, {
+      method: 'DELETE',
+    });
+
+    const result = await res.json();
+    if (result.success) {
+      showToast(`Item "${result.data.name || itemId}" deleted from inventory.`, 'success');
+      closeDeleteItemModal();
+      await refreshData();
+    } else {
+      showToast(result.error || 'Failed to delete item', 'error');
+    }
+  } catch (err) {
+    showToast('Network error deleting item', 'error');
+  } finally {
+    elements.btnConfirmDeleteItem.disabled = false;
   }
 }
 

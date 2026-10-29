@@ -80,6 +80,16 @@ app.patch('/api/items/:id', async (req, res) => {
   }
 });
 
+app.delete('/api/items/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const deleted = await store.deleteItem(id);
+    res.json({ success: true, data: deleted });
+  } catch (err) {
+    res.status(400).json({ success: false, error: err.message });
+  }
+});
+
 // --- Transactions Endpoints ---
 app.get('/api/transactions', async (req, res) => {
   try {

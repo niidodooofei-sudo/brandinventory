@@ -117,6 +117,13 @@ async function testInventoryLogic() {
   assert.ok(allTxns.length >= 4, 'All transaction history rows must be intact');
   console.log(`✓ Audit log verified: ${allTxns.length} total transaction records preserved.`);
 
+  // 9. Test Item Deletion
+  const delResult = await store.deleteItem('TEST-MUG-001');
+  console.log('Deleted Item:', delResult.id);
+  const remainingItems = await store.getAllItems();
+  assert.strictEqual(remainingItems.some(i => i.id === 'TEST-MUG-001'), false, 'Item must be removed from catalog');
+  console.log('✓ Item deletion verified successfully.');
+
   console.log('\n--- All Unit & Integration Checks Passed Successfully! ---');
 }
 
