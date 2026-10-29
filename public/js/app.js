@@ -146,6 +146,11 @@ function setupEventListeners() {
     });
   });
 
+  // Mobile Bottom Navigation
+  document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+    btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+  });
+
   // Stat card click shortcuts
   elements.cardLowStock.addEventListener('click', () => {
     switchTab('tab-inventory');
@@ -485,7 +490,41 @@ function renderInventory() {
       </tr>
     `;
   }).join('');
-}
+
+  // Mobile card view
+  const cardsEl = document.getElementById('inventory-cards');
+  if (cardsEl) {
+    cardsEl.innerHTML = filtered.map(item => {
+      let stockClass = 'stock-ok';
+      let stockLabel = 'In Stock';
+      if (item.isOutOfStock) { stockClass = 'stock-out'; stockLabel = 'Out of Stock'; }
+      else if (item.isLowStock) { stockClass = 'stock-low'; stockLabel = `Low (≤${item.lowStockThreshold})`; }
+
+      return `
+        <div class="inventory-card">
+          <div class="inv-card-top">
+            <div>
+              <div class="inv-card-name">${escapeHtml(item.name)}</div>
+              <div class="inv-card-meta"><code>${escapeHtml(item.id)}</code> &middot; <span class="badge" style="background:#f3f4f6;color:#374151;font-size:0.7rem;">${escapeHtml(item.category || 'General')}</span></div>
+            </div>
+            <div class="inv-card-stock ${stockClass}">
+              <span class="inv-card-stock-num">${item.currentStock.toLocaleString()}</span>
+              <span class="inv-card-stock-unit">${escapeHtml(item.unit)}</span>
+              <span class="inv-card-stock-label">${stockLabel}</span>
+            </div>
+          </div>
+          <div class="inv-card-actions">
+            <button class="btn btn-secondary btn-sm" onclick="quickAction('${item.id}', 'Receipt')">+ Receive</button>
+            <button class="btn btn-secondary btn-sm" onclick="quickAction('${item.id}', 'Distribution')" ${item.currentStock <= 0 ? 'disabled' : ''}>− Distribute</button>
+            <button class="btn btn-outline btn-sm" onclick="quickAction('${item.id}', 'Adjustment')">± Adjust</button>
+            <button class="btn btn-outline btn-sm btn-icon-danger" onclick="confirmDeleteItem('${item.id}')" title="Delete">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 
 // Quick action from item row
 window.quickAction = function(itemId, type) {
@@ -834,7 +873,53 @@ function renderHistoryTable() {
       </tr>
     `;
   }).join('');
-}
+
+  // Mobile card view for history
+  const histCards = document.getElementById('history-cards');
+  if (histCards) {
+    histCards.innerHTML = state.transactions.map(txn => {
+      const item = itemsMap[txn.itemId] || { name: txn.itemId, unit: '' };
+      let badgeClass = 'badge-receipt';
+      let badgeLabel = '+ Receipt';
+      let qtySign = `+${txn.quantity}`;
+      let qtyColor = '#0369a1';
+
+      if (txn.type === 'Distribution') {
+        badgeClass = 'badge-distribution';
+        badgeLabel = '− Distribution';
+        qtySign = `-${txn.quantity}`;
+        qtyColor = '#6b21a8';
+      } else if (txn.type === 'Adjustment') {
+        badgeClass = 'badge-adjustment';
+        badgeLabel = '± Adjustment';
+        qtySign = txn.quantity > 0 ? `+${txn.quantity}` : `${txn.quantity}`;
+        qtyColor = txn.quantity >= 0 ? '#0f766e' : '#b91c1c';
+      }
+
+      return `
+        <div class="history-card">
+          <div class="hist-card-row hist-card-top">
+            <span class="hist-card-date">${escapeHtml(txn.date)}</span>
+            <span class="badge ${badgeClass}">${badgeLabel}</span>
+          </div>
+          <div class="hist-card-item">${escapeHtml(item.name)}</div>
+          <div class="hist-card-row">
+            <span class="hist-card-qty" style="color:${qtyColor};">${qtySign} ${escapeHtml(item.unit)}</span>
+            <code style="font-size:0.7rem;color:var(--text-muted);">${escapeHtml(txn.id)}</code>
+          </div>
+          ${txn.recipient ? `<div class="hist-card-detail"><strong>To:</strong> ${escapeHtml(txn.recipient)}</div>` : ''}
+          ${txn.eventReason ? `<div class="hist-card-detail"><strong>Reason:</strong> ${escapeHtml(txn.eventReason)}</div>` : ''}
+          ${txn.notes ? `<div class="hist-card-detail hist-card-notes">${escapeHtml(txn.notes)}</div>` : ''}
+          <div class="hist-card-action">
+            <button class="btn btn-outline btn-sm" onclick="openReverseModal('${escapeHtml(txn.id)}')">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Reverse / Correct
+            </button>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
 
 // --- Mistake Correction / Reversal Modal ---
 window.openReverseModal = function(txnId) {
@@ -990,6 +1075,7 @@ function switchTab(tabId) {
   state.activeTab = tabId;
   elements.navTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabId));
   elements.tabPanels.forEach(p => p.classList.toggle('active', p.id === tabId));
+  document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tabId));
 }
 
 // Launch application on DOM Ready
