@@ -259,6 +259,7 @@ async function checkStatus() {
     if (data.mode === 'google-sheets' && data.connected) {
       elements.connectionPill.classList.add('status-pill-connected');
       elements.connectionText.textContent = 'Google Sheets Connected';
+      elements.connectionPill.title = 'Google Sheets Connected (Live)';
       elements.settingsStatusBadge.classList.add('connected');
       elements.settingsStatusBadge.textContent = 'Connected';
       elements.settingsStatusMsg.textContent = data.message;
@@ -269,6 +270,7 @@ async function checkStatus() {
     } else if (data.mode === 'google-sheets-error') {
       elements.connectionPill.classList.add('status-pill-error');
       elements.connectionText.textContent = 'Google Sheets Config Error';
+      elements.connectionPill.title = 'Google Sheets Config Error';
       elements.settingsStatusBadge.classList.add('error');
       elements.settingsStatusBadge.textContent = 'Connection Error';
       elements.settingsStatusMsg.textContent = data.message;
@@ -280,6 +282,7 @@ async function checkStatus() {
       // Local fallback mode
       elements.connectionPill.classList.add('status-pill-local');
       elements.connectionText.textContent = 'Local Storage Mode';
+      elements.connectionPill.title = 'Local Storage Mode';
       elements.settingsStatusBadge.classList.add('fallback');
       elements.settingsStatusBadge.textContent = 'Local Fallback';
       elements.settingsStatusMsg.textContent = 'Running with local file storage.';
@@ -290,7 +293,9 @@ async function checkStatus() {
     }
   } catch (err) {
     elements.connectionPill.className = 'status-pill status-pill-error';
-    elements.connectionText.textContent = err.name === 'AbortError' ? 'Connection Timeout' : 'Server Offline';
+    const errorText = err.name === 'AbortError' ? 'Connection Timeout' : 'Server Offline';
+    elements.connectionText.textContent = errorText;
+    elements.connectionPill.title = errorText;
     elements.settingsStatusBadge.className = 'status-badge error';
     elements.settingsStatusBadge.textContent = 'Offline';
     elements.settingsStatusMsg.textContent = err.name === 'AbortError'
