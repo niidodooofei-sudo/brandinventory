@@ -244,7 +244,12 @@ function debounce(func, delay) {
 // --- Status & Google Sheets Check ---
 async function checkStatus() {
   try {
-    const res = await fetch('/api/status');
+    // Timeout after 12s to avoid hanging indefinitely
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 12000);
+
+    const res = await fetch('/api/status', { signal: controller.signal });
+    clearTimeout(timeout);
     const data = await res.json();
     state.backendStatus = data;
 
@@ -285,7 +290,12 @@ async function checkStatus() {
     }
   } catch (err) {
     elements.connectionPill.className = 'status-pill status-pill-error';
-    elements.connectionText.textContent = 'Server Offline';
+    elements.connectionText.textContent = err.name === 'AbortError' ? 'Connection Timeout' : 'Server Offline';
+    elements.settingsStatusBadge.className = 'status-badge error';
+    elements.settingsStatusBadge.textContent = 'Offline';
+    elements.settingsStatusMsg.textContent = err.name === 'AbortError'
+      ? 'Google Sheets is taking too long to respond. Check your Vercel environment variables.'
+      : 'Could not reach the server.';
   }
 }
 
@@ -525,6 +535,7 @@ function renderInventory() {
       `;
     }).join('');
   }
+}
 
 // Quick action from item row
 window.quickAction = function(itemId, type) {
@@ -920,6 +931,7 @@ function renderHistoryTable() {
       `;
     }).join('');
   }
+}
 
 // --- Mistake Correction / Reversal Modal ---
 window.openReverseModal = function(txnId) {

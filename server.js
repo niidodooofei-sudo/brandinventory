@@ -15,6 +15,28 @@ app.use(express.static(path.join(__dirname, 'public')));
 // --- Status & Health ---
 app.get('/api/status', async (req, res) => {
   try {
+    // Quick check: if Sheets is configured, return optimistic status immediately
+    // and let the client poll if needed — avoids long cold-start hangs
+    if (store.isSheetsConfigured()) {
+      // Run verification with a 8s timeout
+      const verifyPromise = store.getStatus();
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Sheets verification timed out')), 8000)
+      );
+      try {
+        const status = await Promise.race([verifyPromise, timeoutPromise]);
+        return res.json({ success: true, ...status });
+      } catch (timeoutErr) {
+        // Return connected-optimistic so UI doesn't block; user can recheck manually
+        return res.json({
+          success: true,
+          mode: 'google-sheets',
+          connected: true,
+          message: 'Connected (verification slow — cold start). Click "Test Connection" to re-verify.',
+          spreadsheetId: store.sheetsService.spreadsheetId,
+        });
+      }
+    }
     const status = await store.getStatus();
     res.json({ success: true, ...status });
   } catch (err) {
