@@ -897,7 +897,7 @@ function renderHistoryTable() {
       }
 
       return `
-        <div class="history-card">
+        <div class="history-card" data-type="${escapeHtml(txn.type)}">
           <div class="hist-card-row hist-card-top">
             <span class="hist-card-date">${escapeHtml(txn.date)}</span>
             <span class="badge ${badgeClass}">${badgeLabel}</span>
